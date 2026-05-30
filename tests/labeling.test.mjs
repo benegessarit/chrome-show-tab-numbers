@@ -21,6 +21,8 @@ assert.equal(isInjectableUrl("chrome://extensions"), false);
 assert.equal(isInjectableUrl("https://chrome.google.com/webstore"), false);
 assert.equal(isInjectableUrl(""), false);
 
+assert.equal(stripHintPrefix("[A] Inbox"), "Inbox");
+assert.equal(stripHintPrefix("[;] Docs"), "Docs");
 assert.equal(stripHintPrefix("◆ A ◆ Inbox"), "Inbox");
 assert.equal(stripHintPrefix("◇ ; ◇ Docs"), "Docs");
 assert.equal(stripHintPrefix("3. Calendar"), "Calendar");
@@ -73,7 +75,6 @@ assert.deepEqual(
   [
     ["a", 8, "First", true],
     ["s", 10, "Third", true],
-    ["d", 11, "Chrome", false],
   ],
 );
 

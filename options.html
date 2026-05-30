@@ -52,9 +52,10 @@
   <body>
     <h1>Tab Flash Jump Hints</h1>
     <p>
-      This local MVP labels current-window tabs with home-row-first letters and
-      lets you jump from the extension popup. Use <code>⌘⇧J</code> on macOS, or
-      click the extension icon, then type the visible label.
+      This local MVP keeps current-window tabs labeled with always-on,
+      home-row-first title prefixes. The extension popup remains as an optional
+      helper list, but the test is simply whether visible prefixes make tab
+      scanning easier.
     </p>
 
     <h2>Label order</h2>
@@ -63,8 +64,9 @@
     <h2>Limits</h2>
     <p>
       Chrome extensions cannot draw over Chrome’s native tab strip or listen for
-      raw “hold Cmd” key-up/key-down events. This MVP uses supported extension
-      surfaces: title prefixes, favicon badges, and the action popup.
+      raw “hold Cmd” key-up/key-down events. This MVP intentionally avoids that
+      path and uses supported extension surfaces: always-on title prefixes,
+      favicon badges, and the action popup.
     </p>
 
     <script type="module" src="options.js"></script>

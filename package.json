@@ -1,7 +1,7 @@
 {
   "name": "tab-flash-jump-hints",
   "version": "0.1.0",
-  "description": "Home-row letter jump hints for Chrome tabs.",
+  "description": "Always-on visible letter prefixes for Chrome tabs.",
   "main": "background.js",
   "type": "module",
   "devDependencies": {

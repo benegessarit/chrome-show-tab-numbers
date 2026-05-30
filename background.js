@@ -1,24 +1,9 @@
 import { buildHintRows } from "./lib/labels.js";
 
-const config = { enabled: true, disabledTabIds: new Set() };
-
-const COMMANDS = {
-  "refresh-hints": updateAll,
-  "toggle-hints": toggleAllHints,
-};
-
 const CONTEXT_MENU = {
-  "tab-flash-refresh-hints": {
-    title: "Refresh tab jump hints",
+  "tab-prefix-refresh-hints": {
+    title: "Refresh visible tab prefixes",
     callback: updateAll,
-  },
-  "tab-flash-toggle-hints": {
-    title: "Toggle tab jump hints",
-    callback: toggleAllHints,
-  },
-  "tab-flash-toggle-current-tab": {
-    title: "Toggle hints for current tab",
-    callback: toggleCurrentTab,
   },
 };
 
@@ -39,8 +24,6 @@ chrome.tabs.onCreated.addListener(requestToUpdateAll);
 chrome.tabs.onMoved.addListener(requestToUpdateAll);
 chrome.tabs.onRemoved.addListener(requestToUpdateAll);
 chrome.tabs.onUpdated.addListener(requestToUpdateAll);
-chrome.tabs.onRemoved.addListener(onTabRemoved);
-chrome.commands.onCommand.addListener(onCommand);
 chrome.contextMenus.onClicked.addListener(onMenuClicked);
 chrome.runtime.onMessage.addListener(onMessage);
 
@@ -59,9 +42,7 @@ function requestToUpdateAll() {
 async function updateAll() {
   const rows = await getHintRows();
 
-  await Promise.allSettled(
-    rows.map((row) => updateTabHint(row, { enabled: config.enabled })),
-  );
+  await Promise.allSettled(rows.map((row) => updateTabHint(row)));
 }
 
 async function getHintRows() {
@@ -90,8 +71,8 @@ async function findCollapsedTabGroups() {
   }
 }
 
-async function updateTabHint(row, { enabled }) {
-  if (!row.injectable || config.disabledTabIds.has(row.tabId)) {
+async function updateTabHint(row) {
+  if (!row.injectable) {
     return;
   }
 
@@ -102,7 +83,6 @@ async function updateTabHint(row, { enabled }) {
       args: [
         {
           active: row.active,
-          enabled,
           label: row.label,
           title: row.title,
         },
@@ -115,8 +95,9 @@ async function updateTabHint(row, { enabled }) {
   }
 }
 
-function updatePageHint({ active, enabled, label, title }) {
-  const FLASH_PREFIX_PATTERN = /^[◆◇]\s*[A-Z;]{1,4}\s*[◆◇]\s*/;
+function updatePageHint({ active, label, title }) {
+  const TAB_PREFIX_PATTERN =
+    /^(?:[◆◇]\s*[A-Z;]{1,4}\s*[◆◇]|\[[A-Z;]{1,4}\])\s*/;
   const NUMBERED_PATTERN = /^[-+]?\d+\. ?/;
   const NOTIFICATION_COUNT_PATTERN = /^(\(\d+\)) [-+]?\d+\. (?:\(\d+\) )?/;
 
@@ -164,99 +145,30 @@ function updatePageHint({ active, enabled, label, title }) {
     icon.setAttribute("href", buildBadgeDataUrl(currentLabel, { isActive }));
   }
 
-  function restoreFavicon(cache) {
-    const icon = document.querySelector('link[rel~="icon"]');
-
-    if (!icon || !cache.originalFaviconCaptured) {
-      return;
-    }
-
-    if (cache.originalFaviconHref) {
-      icon.setAttribute("href", cache.originalFaviconHref);
-    } else if (cache.createdFavicon) {
-      icon.remove();
-      return;
-    }
-
-    if (cache.originalFaviconType) {
-      icon.setAttribute("type", cache.originalFaviconType);
-    } else {
-      icon.removeAttribute("type");
-    }
-  }
-
   const cache = document.tabFlashJumpHints ?? {};
   const rawTitle = title || document.title || "Untitled tab";
   const baseTitle =
     cache.renderedTitle === rawTitle && cache.baseTitle
       ? cache.baseTitle
       : rawTitle
-          .replace(FLASH_PREFIX_PATTERN, "")
+          .replace(TAB_PREFIX_PATTERN, "")
           .replace(NUMBERED_PATTERN, "")
           .replace(NOTIFICATION_COUNT_PATTERN, "$1 ")
           .trim();
 
-  const marker = active ? "◆" : "◇";
-  const renderedTitle = enabled
-    ? `${marker} ${label.toUpperCase()} ${marker} ${baseTitle}`.trim()
-    : baseTitle;
+  const renderedTitle = `[${label.toUpperCase()}] ${baseTitle}`.trim();
 
   if (document.title !== renderedTitle) {
     document.title = renderedTitle;
   }
 
-  if (enabled) {
-    setFaviconBadge(cache, label, { isActive: active });
-  } else {
-    restoreFavicon(cache);
-  }
+  setFaviconBadge(cache, label, { isActive: active });
 
   cache.active = active;
   cache.baseTitle = baseTitle;
-  cache.enabled = enabled;
   cache.label = label;
   cache.renderedTitle = renderedTitle;
   document.tabFlashJumpHints = cache;
-}
-
-async function toggleAllHints() {
-  config.enabled = !config.enabled;
-  await updateAll();
-}
-
-async function toggleCurrentTab() {
-  const [currentTab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true,
-  });
-
-  if (!currentTab?.id) {
-    return;
-  }
-
-  const isDisabled = config.disabledTabIds.has(currentTab.id);
-
-  if (isDisabled) {
-    config.disabledTabIds.delete(currentTab.id);
-  } else {
-    config.disabledTabIds.add(currentTab.id);
-  }
-
-  await updateAll();
-}
-
-function onTabRemoved(tabId) {
-  config.disabledTabIds.delete(tabId);
-}
-
-function onCommand(command) {
-  const callback = COMMANDS[command];
-
-  if (callback) {
-    callback().catch((error) =>
-      console.warn(`Command failed: ${command}`, error),
-    );
-  }
 }
 
 function onMenuClicked(info) {
@@ -289,13 +201,13 @@ function onMessage(message, _sender, sendResponse) {
 async function handleMessage(message) {
   if (message?.type === "get-hints") {
     const rows = await getHintRows();
-    return { enabled: config.enabled, ok: true, rows };
+    return { ok: true, rows };
   }
 
   if (message?.type === "refresh-hints") {
     await updateAll();
     const rows = await getHintRows();
-    return { enabled: config.enabled, ok: true, rows };
+    return { ok: true, rows };
   }
 
   if (message?.type === "activate-label") {

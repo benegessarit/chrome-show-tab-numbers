@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tab Flash Jump Hints",
   "version": "0.1.0",
-  "description": "Home-row letter jump hints for Chrome tabs.",
+  "description": "Always-on visible letter prefixes for Chrome tabs.",
   "icons": {
     "128": "assets/icon128.png"
   },
@@ -26,12 +26,6 @@
         "default": "Ctrl+Shift+J",
         "mac": "Command+Shift+J"
       }
-    },
-    "refresh-hints": {
-      "description": "Refresh tab jump hint labels"
-    },
-    "toggle-hints": {
-      "description": "Toggle tab jump hint labels"
     }
   }
 }
