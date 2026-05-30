@@ -1,0 +1,29 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tab Flash Jump Hints</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div>
+        <h1>Jump to tab</h1>
+        <p>Type a shown label or click a row.</p>
+      </div>
+      <output id="buffer" aria-live="polite"></output>
+    </header>
+
+    <main>
+      <div id="status">Loading tabs…</div>
+      <ol id="tabs" aria-label="Current window tabs"></ol>
+    </main>
+
+    <footer>
+      <button id="refresh" type="button">Refresh hints</button>
+      <span>Shortcut: ⌘⇧J</span>
+    </footer>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

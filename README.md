@@ -1,60 +1,64 @@
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![checks](https://github.com/kg8m/chrome-show-tab-numbers/actions/workflows/checks.yml/badge.svg)](https://github.com/kg8m/chrome-show-tab-numbers/actions/workflows/checks.yml)
+# Tab Flash Jump Hints
 
-# chrome-show-tab-numbers
+A local, unpacked Chromium extension for fast tab switching with nvim-Flash-style home-row labels.
 
-A Chromium extension to show tab numbers.
+This is adapted from [`kg8m/chrome-show-tab-numbers`](https://github.com/kg8m/chrome-show-tab-numbers) under the MIT license. The original extension numbers tabs by rewriting page titles. This fork changes the product loop: tabs get prominent letter labels, favicon badges, and a keyboard-focused popup for jumping.
 
-![Screenshot](assets/screenshot.png)
+## What it does
 
-Notable features:
+- Labels current-window tabs with home-row-first letters: `a s d f j k l ; q w e r u i o p z x c v b n m g h y t`.
+- Falls back to two-key labels after the one-key alphabet, e.g. `aa`, `as`, `ad`.
+- Makes hints more visible than title text alone by rewriting both:
+  - the tab title prefix, e.g. `◆ A ◆ Inbox`; and
+  - the page favicon to a high-contrast letter badge when the page allows injection.
+- Opens a popup with `⌘⇧J` on macOS. Type the visible label or click the row to activate a tab.
+- Skips collapsed tab groups when assigning visible labels, following the upstream behavior.
+- Handles restricted pages gracefully: `chrome://` and Web Store tabs still appear in the popup list, but cannot receive title/favicon injection.
 
-- This extension supports Google Chrome’s collapsed tab group feature, automatically ignoring tabs in a collapsed tab group.
-- You can toggle tab numbering for all tabs or just the current one via keyboard shortcuts or the extension’s context menu.
-- Tab numbers can be relative, displaying the current tab’s absolute number and indicating the position of other tabs relative to it ― how many tabs they are ahead or behind the current one.
+## Important limitation
 
-## How to Install
+A pure Chrome extension cannot draw a large overlay on Chrome's native tab strip or listen for raw “hold Cmd, release Cmd” events. Chrome’s supported extension surfaces are command shortcuts, tab activation, page script/CSS injection, title/favicons, and extension popups.
 
-### From Chrome Web Store
+If this MVP feels useful, the true “hold Cmd and show native tab-strip overlays” version should be a separate macOS helper/Hammerspoon/Accessibility build.
 
-https://chrome.google.com/webstore/detail/pflnpcinjbcfefgbejjfanemlgcfjbna
+## Install locally
 
-### From Source
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked**.
+4. Select this folder:
 
-1. Download (and unzip) this repository
-1. Open the extensions of your browser
-1. Enable “Developer mode”
-1. Click “Load unpacked”
-1. Select the downloaded directory
+   ```text
+   /Users/davidbeyer/chromeextension/tab-jump-hints
+   ```
 
-## How to Develop
+5. Open a few normal `https://` tabs.
+6. Press `⌘⇧J` or click the extension icon.
+7. Type a shown label, e.g. `a`, `s`, `d`, or `;`.
 
-1. Fork this repository
-1. Clone your forked repository
-1. Go to the cloned directory
-1. (Create a branch)
-1. Run `npm install`
-1. Make changes to the source code
-1. Lint the code: `make lint`
-1. (Fix lint errors and rerun `make lint`)
-1. Format the code: `make fix`
-1. Create a pull request
+If `⌘⇧J` conflicts with another extension, open `chrome://extensions/shortcuts` and remap **Tab Flash Jump Hints**.
 
-## How to Release
+## Develop / verify
 
-1. Update the version: `make update-major`, `make update-minor`, or `make update-patch`
-   - A new release and its release notes will be generated automatically. Review them on the [Releases](https://github.com/kg8m/chrome-show-tab-numbers/releases) page
-1. Run `make zip` to build a zip file
-1. Upload the built zip file to the [Chrome Web Store](https://chrome.google.com/webstore/devconsole) and publish it
+```bash
+npm install
+npm run check
+```
 
-## Q&amp;A
+`npm run check` runs:
 
-### Q. Keyboard shortcuts don’t work on Vivaldi; is this a bug in this extension?
+- ESLint across the extension source;
+- Prettier format check;
+- label-generation tests; and
+- a small manifest validator for local MV3 loading.
 
-A. No, it is Vivaldi’s bug. As a workaround, changing the shortcut to `Global` will solve the issue.
+## Manual smoke checklist
 
-cf. https://forum.vivaldi.net/topic/75247/extensions-keyboard-shortcuts-don-t-work/115
-
-> That is a known issue that can be fixed by changing the shortcut from `In Vivaldi` to `Global`.
->
-> This can have some side effects if you use the same shortcut in other programs, so it might be helpful to also take a look at this workaround: [https://forum.vivaldi.net/topic/69541/guide-make-extension-keyboard-shortcuts-work-windows-10-11](https://forum.vivaldi.net/topic/69541/guide-make-extension-keyboard-shortcuts-work-windows-10-11)
+- [ ] Load the unpacked extension from `/Users/davidbeyer/chromeextension/tab-jump-hints`.
+- [ ] Open 8+ tabs in one Chrome window.
+- [ ] Include one restricted page such as `chrome://extensions`.
+- [ ] Press `⌘⇧J`.
+- [ ] Confirm the popup lists letter labels in home-row order.
+- [ ] Press a label and confirm the matching tab activates.
+- [ ] Confirm normal web tabs show visible title prefixes and favicon letter badges.
+- [ ] Confirm restricted pages do not crash and remain available via the popup.

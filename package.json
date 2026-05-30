@@ -1,7 +1,7 @@
 {
-  "name": "chrome-show-tab-numbers",
-  "version": "1.6.0",
-  "description": "A Chromium extension to show tab numbers.",
+  "name": "tab-flash-jump-hints",
+  "version": "0.1.0",
+  "description": "Home-row letter jump hints for Chrome tabs.",
   "main": "background.js",
   "type": "module",
   "devDependencies": {
@@ -11,15 +11,18 @@
     "prettier": "^3.8.3"
   },
   "scripts": {
-    "lint": "eslint *.js",
-    "format": "eslint --fix *.js && prettier --write .",
-    "format-check": "prettier --check ."
+    "lint": "eslint .",
+    "format": "eslint --fix . && prettier --write .",
+    "format-check": "prettier --check .",
+    "test": "node tests/labeling.test.mjs",
+    "validate-manifest": "node scripts/validate-manifest.mjs",
+    "check": "npm run lint && npm run format-check && npm test && npm run validate-manifest"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kg8m/chrome-show-tab-numbers.git"
   },
-  "author": "kg8m",
+  "author": "David Beyer / Hermes Agent, adapted from kg8m",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/kg8m/chrome-show-tab-numbers/issues"

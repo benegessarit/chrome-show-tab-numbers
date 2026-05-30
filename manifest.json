@@ -1,13 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Show Tab Numbers",
-  "version": "1.6.0",
-  "description": "A Chromium extension to show tab numbers.",
+  "name": "Tab Flash Jump Hints",
+  "version": "0.1.0",
+  "description": "Home-row letter jump hints for Chrome tabs.",
   "icons": {
     "128": "assets/icon128.png"
   },
+  "action": {
+    "default_title": "Tab Flash Jump Hints",
+    "default_popup": "popup.html"
+  },
   "background": {
-    "service_worker": "background.js"
+    "service_worker": "background.js",
+    "type": "module"
   },
   "options_ui": {
     "page": "options.html",
@@ -16,11 +21,17 @@
   "permissions": ["contextMenus", "scripting", "storage", "tabGroups", "tabs"],
   "host_permissions": ["<all_urls>"],
   "commands": {
-    "toggle-all-tabs": {
-      "description": "Toggle tab numbering for all tabs"
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+J",
+        "mac": "Command+Shift+J"
+      }
     },
-    "toggle-current-tab": {
-      "description": "Toggle tab numbering for current tab"
+    "refresh-hints": {
+      "description": "Refresh tab jump hint labels"
+    },
+    "toggle-hints": {
+      "description": "Toggle tab jump hint labels"
     }
   }
 }

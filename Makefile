@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
 HELP_SEPARATOR := ＠
 
-PACKAGE_NAME := chrome-show-tab-numbers
-PACKAGE_TARGETS := manifest.json background.js options.html options.js assets/icon128.png
+PACKAGE_NAME := tab-flash-jump-hints
+PACKAGE_TARGETS := manifest.json background.js popup.html popup.css popup.js options.html options.js lib/labels.js assets/icon128.png README.md LICENSE
 
 .PHONY: help
 help:  ## Show help
@@ -23,20 +23,13 @@ format:  ## Format files
 format-check:  ## Check if files are formatted
 	npm run format-check
 
-.PHONY: update-major
-update-major:  ## Update the major version
-	scripts/update-version major
-
-.PHONY: update-minor
-update-minor:  ## Update the minor version
-	scripts/update-version minor
-
-.PHONY: update-patch
-update-patch:  ## Update the patch version
-	scripts/update-version patch
+.PHONY: check
+check:  ## Run all local checks
+	npm run check
 
 .PHONY: zip
-zip:  ## Build a zip file for upload
+zip:  ## Build a zip file for local sharing
+	mkdir -p packages
 	rm -f packages/$(PACKAGE_NAME).zip
 	zip packages/$(PACKAGE_NAME) $(PACKAGE_TARGETS)
 	open packages
