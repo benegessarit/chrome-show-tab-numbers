@@ -78,6 +78,57 @@ assert.deepEqual(
   ],
 );
 
+const popupRows = buildHintRows(
+  [
+    {
+      active: false,
+      groupId: -1,
+      id: 1,
+      index: 0,
+      title: "Chrome settings",
+      url: "chrome://extensions",
+      windowId: 1,
+    },
+    {
+      active: true,
+      groupId: -1,
+      id: 2,
+      index: 1,
+      title: "First normal",
+      url: "https://first.example",
+      windowId: 1,
+    },
+    {
+      active: false,
+      groupId: -1,
+      id: 3,
+      index: 2,
+      title: "Second normal",
+      url: "https://second.example",
+      windowId: 1,
+    },
+    {
+      active: false,
+      groupId: 9,
+      id: 4,
+      index: 3,
+      title: "Collapsed restricted",
+      url: "chrome://bookmarks",
+      windowId: 1,
+    },
+  ],
+  { collapsedTabGroupIds: new Set([9]), includeRestricted: true },
+);
+
+assert.deepEqual(
+  popupRows.map((row) => [row.label, row.tabId, row.title, row.injectable]),
+  [
+    ["d", 1, "Chrome settings", false],
+    ["a", 2, "First normal", true],
+    ["s", 3, "Second normal", true],
+  ],
+);
+
 console.log(
   `ok - ${rows.length} labeled rows, ${LABEL_ALPHABET.length} one-key labels`,
 );

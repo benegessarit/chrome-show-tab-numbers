@@ -18,7 +18,7 @@
 
       body {
         margin: 18px;
-        max-width: 640px;
+        max-width: 720px;
         line-height: 1.45;
       }
 
@@ -52,21 +52,37 @@
   <body>
     <h1>Tab Flash Jump Hints</h1>
     <p>
-      This local MVP keeps current-window tabs labeled with always-on,
-      home-row-first title prefixes. The extension popup remains as an optional
-      helper list, but the test is simply whether visible prefixes make tab
-      scanning easier.
+      This local MVP keeps Chrome tab titles clean by default. When the matching
+      Karabiner rule and helper are installed, hold physical left Ctrl while
+      Chrome is frontmost to show temporary one-key title/favicon hints, tap the
+      visible label to jump, and release Ctrl to hide.
     </p>
 
     <h2>Label order</h2>
     <ol id="alphabet" class="alphabet" aria-label="Jump hint label order"></ol>
 
-    <h2>Limits</h2>
+    <h2>Popup fallback</h2>
     <p>
-      Chrome extensions cannot draw over Chrome’s native tab strip or listen for
-      raw “hold Cmd” key-up/key-down events. This MVP intentionally avoids that
-      path and uses supported extension surfaces: always-on title prefixes,
-      favicon badges, and the action popup.
+      The Ctrl-hold pilot jumps only one-key labels. Use the extension popup for
+      overflow/two-key labels such as <code>aa</code>, for restricted pages, or
+      whenever the local helper is not available.
+    </p>
+
+    <h2>Setup gate</h2>
+    <p>
+      The helper uses Chrome JavaScript from Apple Events. If
+      <code>chrome-tab-prefix-jump doctor</code> asks for setup, open Chrome and
+      enable
+      <strong
+        >View &gt; Developer &gt; Allow JavaScript from Apple Events</strong
+      >, then rerun the doctor command.
+    </p>
+
+    <h2>Tradeoff</h2>
+    <p>
+      While Chrome is frontmost, exact physical left Ctrl plus one of the label
+      keys is reserved for tab jumps. If that conflicts with text-editing
+      habits, change the Karabiner rule to another hold key or remove the rule.
     </p>
 
     <script type="module" src="options.js"></script>

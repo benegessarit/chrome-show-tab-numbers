@@ -16,11 +16,11 @@ document.addEventListener("keydown", onKeyDown);
 await refreshHints();
 
 async function refreshHints() {
-  setStatus("Refreshing prefixes…");
+  setStatus("Refreshing labels…");
   const response = await chrome.runtime.sendMessage({ type: "refresh-hints" });
 
   if (!response?.ok) {
-    setStatus(response?.error || "Could not load tab prefixes.");
+    setStatus(response?.error || "Could not load tab labels.");
     return;
   }
 

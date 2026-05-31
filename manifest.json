@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Tab Flash Jump Hints",
-  "version": "0.1.0",
-  "description": "Always-on visible letter prefixes for Chrome tabs.",
+  "version": "0.2.0",
+  "description": "Clean-by-default Chrome tab jump labels with popup fallback and a local Ctrl-hold helper.",
   "icons": {
     "128": "assets/icon128.png"
   },
@@ -18,8 +18,7 @@
     "page": "options.html",
     "open_in_tab": false
   },
-  "permissions": ["contextMenus", "scripting", "storage", "tabGroups", "tabs"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": ["contextMenus", "tabGroups", "tabs"],
   "commands": {
     "_execute_action": {
       "suggested_key": {

@@ -8,8 +8,11 @@
   <body>
     <header>
       <div>
-        <h1>Visible tab prefixes</h1>
-        <p>Prefixes stay on; type or click here only if you want to jump.</p>
+        <h1>Tab jump labels</h1>
+        <p>
+          Titles stay clean by default. Use this popup for overflow/two-key
+          labels.
+        </p>
       </div>
       <output id="buffer" aria-live="polite"></output>
     </header>
@@ -20,8 +23,8 @@
     </main>
 
     <footer>
-      <button id="refresh" type="button">Refresh prefixes</button>
-      <span>Optional popup: ⌘⇧J</span>
+      <button id="refresh" type="button">Refresh labels</button>
+      <span>Popup fallback: ⌘⇧J</span>
     </footer>
 
     <script type="module" src="popup.js"></script>
