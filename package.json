@@ -1,7 +1,7 @@
 {
   "name": "tab-flash-jump-hints",
   "version": "0.2.0",
-  "description": "Clean-by-default Chrome tab jump labels with popup fallback and a local Ctrl-hold helper.",
+  "description": "Clean-by-default Chrome tab jump labels with popup fallback and a local Hyper+K Hammerspoon modal.",
   "main": "background.js",
   "type": "module",
   "devDependencies": {

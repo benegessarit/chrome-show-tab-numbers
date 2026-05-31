@@ -12,5 +12,5 @@ tabJumpHints.start()
 
 hs.notify.new({
   title = "Tab Jump Hints",
-  informativeText = "Chrome left-Ctrl overlay loaded",
+  informativeText = "Chrome Hyper+K overlay loaded",
 }):send()

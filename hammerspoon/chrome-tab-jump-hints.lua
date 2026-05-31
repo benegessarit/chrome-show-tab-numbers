@@ -1,10 +1,16 @@
 local M = {}
 
 M.CHROME_BUNDLE_ID = "com.google.Chrome"
-M.LEFT_CONTROL_KEY_CODE = 59
+M.HYPER_TRIGGER_KEY_CODE = 40 -- k
+M.KARABINER_TRIGGER_KEY_CODE = 79 -- f18 bridge for Chrome-scoped Hyper+K
+M.ESCAPE_KEY_CODE = 53
 M.REFRESH_INTERVAL_SECONDS = 1.5
 M.CACHE_STALE_SECONDS = 3.0
+M.MODAL_TIMEOUT_SECONDS = 3.0
 M.MAX_ONE_KEY_TABS = 27
+M.OVERLAY_HEIGHT = 42
+M.LABEL_WIDTH = 26
+M.LABEL_HEIGHT = 22
 M.LABELS = {
   "a", "s", "d", "f", "j", "k", "l", ";",
   "q", "w", "e", "r", "u", "i", "o", "p",
@@ -96,6 +102,23 @@ function M.isChromeFrontmost(env)
   return frontmostBundleID(env) == M.CHROME_BUNDLE_ID
 end
 
+function M.isHyperFlags(flags)
+  return flags and flags.ctrl and flags.alt and flags.shift and flags.cmd
+end
+
+function M.isPlainFlags(flags)
+  flags = flags or {}
+  return not flags.ctrl and not flags.alt and not flags.shift and not flags.cmd and not flags.fn
+end
+
+function M.isModalTrigger(event)
+  local keyCode = event:getKeyCode()
+  if keyCode == M.KARABINER_TRIGGER_KEY_CODE then
+    return true
+  end
+  return keyCode == M.HYPER_TRIGGER_KEY_CODE and M.isHyperFlags(event:getFlags())
+end
+
 function M.buildRows(tabs)
   local rows = {}
   local tabCount = math.min(#tabs, #M.LABELS, M.MAX_ONE_KEY_TABS)
@@ -125,12 +148,13 @@ function M.layoutRows(windowFrame, rows)
 
   local leftInset = 86
   local rightInset = 22
+  local labelWidth = M.LABEL_WIDTH
   local usableWidth = math.max(180, windowFrame.w - leftInset - rightInset)
   local tabWidth = math.min(220, math.max(42, usableWidth / count))
-  local y = 8
+  local y = 7
 
   for index, row in ipairs(rows) do
-    local x = leftInset + ((index - 1) * tabWidth) + math.max(4, (tabWidth - 34) / 2)
+    local x = leftInset + ((index - 1) * tabWidth) + math.max(3, (tabWidth - labelWidth) / 2)
     visibleRows[#visibleRows + 1] = {
       active = row.active,
       label = row.label,
@@ -138,8 +162,8 @@ function M.layoutRows(windowFrame, rows)
       title = row.title,
       x = math.floor(x),
       y = y,
-      w = 34,
-      h = 30,
+      w = labelWidth,
+      h = M.LABEL_HEIGHT,
     }
   end
 
@@ -218,12 +242,12 @@ end
 local function makeCanvasElements(rows)
   local elements = {}
   for _, row in ipairs(rows) do
-    local background = row.active and { red = 0.98, green = 0.78, blue = 0.26, alpha = 0.96 }
-      or { red = 0.07, green = 0.09, blue = 0.14, alpha = 0.92 }
-    local foreground = row.active and { red = 0.07, green = 0.09, blue = 0.14, alpha = 1.0 }
-      or { red = 0.98, green = 0.98, blue = 0.96, alpha = 1.0 }
-    local stroke = row.active and { red = 0.07, green = 0.09, blue = 0.14, alpha = 1.0 }
-      or { red = 0.98, green = 0.78, blue = 0.26, alpha = 1.0 }
+    local background = row.active and { red = 0.80, green = 0.65, blue = 0.97, alpha = 0.82 }
+      or { red = 0.06, green = 0.07, blue = 0.10, alpha = 0.64 }
+    local foreground = row.active and { red = 0.05, green = 0.04, blue = 0.08, alpha = 0.96 }
+      or { red = 0.93, green = 0.91, blue = 0.98, alpha = 0.94 }
+    local stroke = row.active and { red = 0.91, green = 0.82, blue = 1.00, alpha = 0.68 }
+      or { red = 0.93, green = 0.91, blue = 0.98, alpha = 0.24 }
 
     elements[#elements + 1] = {
       type = "rectangle",
@@ -231,8 +255,14 @@ local function makeCanvasElements(rows)
       frame = { x = row.x, y = row.y, w = row.w, h = row.h },
       fillColor = background,
       strokeColor = stroke,
-      strokeWidth = 2,
-      roundedRectRadii = { xRadius = 8, yRadius = 8 },
+      strokeWidth = row.active and 1.2 or 0.8,
+      roundedRectRadii = { xRadius = 7, yRadius = 7 },
+      withShadow = true,
+      shadow = {
+        blurRadius = row.active and 10 or 7,
+        color = { red = 0.00, green = 0.00, blue = 0.00, alpha = row.active and 0.24 or 0.18 },
+        offset = { h = 1, w = 0 },
+      },
     }
     elements[#elements + 1] = {
       type = "text",
@@ -241,7 +271,7 @@ local function makeCanvasElements(rows)
       textAlignment = "center",
       textColor = foreground,
       textFont = "Menlo-Bold",
-      textSize = 20,
+      textSize = 14,
     }
   end
   return elements
@@ -258,7 +288,8 @@ function M.create(overrides)
 
   local controller = {
     cache = { rows = {}, updatedAt = 0, error = nil },
-    ctrlHeld = false,
+    modalActive = false,
+    modalTimer = nil,
     overlay = nil,
     refreshTimer = nil,
     eventtap = nil,
@@ -278,10 +309,10 @@ function M.create(overrides)
           x = frame.x,
           y = frame.y,
           w = frame.w,
-          h = 52,
+          h = M.OVERLAY_HEIGHT,
         })
       end
-      if self.ctrlHeld then
+      if self.modalActive then
         self:showOverlay()
       end
     else
@@ -327,7 +358,7 @@ function M.create(overrides)
       x = frame.x,
       y = frame.y,
       w = frame.w,
-      h = 52,
+      h = M.OVERLAY_HEIGHT,
     }
     local positionedRows = M.layoutRows(canvasFrame, self.cache.rows)
     local elements = makeCanvasElements(positionedRows)
@@ -350,29 +381,35 @@ function M.create(overrides)
     end)
   end
 
-  function controller:handleFlagsChanged(event)
-    local keyCode = event:getKeyCode()
-    if keyCode ~= M.LEFT_CONTROL_KEY_CODE then
+  function controller:armModalTimeout()
+    if self.modalTimer and self.modalTimer.stop then
+      self.modalTimer:stop()
+    end
+    self.modalTimer = env.hs.timer.doAfter(M.MODAL_TIMEOUT_SECONDS, function()
+      self:cancelModal()
+    end)
+  end
+
+  function controller:cancelModal()
+    self.modalActive = false
+    if self.modalTimer and self.modalTimer.stop then
+      self.modalTimer:stop()
+    end
+    self.modalTimer = nil
+    self:hideOverlay()
+  end
+
+  function controller:activateModal()
+    if not M.isChromeFrontmost(env) then
       return false
     end
-
-    local flags = event:getFlags()
-    if flags.ctrl and not self.ctrlHeld then
-      self.ctrlHeld = true
-      self:showOverlay()
-      if env.now() - (self.cache.updatedAt or 0) > M.CACHE_STALE_SECONDS then
-        self:refreshSoon()
-      end
-      return false
+    self.modalActive = true
+    self:showOverlay()
+    self:armModalTimeout()
+    if env.now() - (self.cache.updatedAt or 0) > M.CACHE_STALE_SECONDS then
+      self:refreshSoon()
     end
-
-    if not flags.ctrl and self.ctrlHeld then
-      self.ctrlHeld = false
-      self:hideOverlay()
-      return false
-    end
-
-    return false
+    return true
   end
 
   function controller:jumpToLabel(label)
@@ -384,8 +421,7 @@ function M.create(overrides)
       end
     end
 
-    self.ctrlHeld = false
-    self:hideOverlay()
+    self:cancelModal()
 
     if not target then
       return true
@@ -397,17 +433,32 @@ function M.create(overrides)
   end
 
   function controller:handleKeyDown(event)
-    if not self.ctrlHeld or not M.isChromeFrontmost(env) then
+    if M.isModalTrigger(event) then
+      return self:activateModal()
+    end
+
+    if not self.modalActive then
       return false
     end
 
-    local flags = event:getFlags()
-    if flags.cmd or flags.alt or flags.shift or not flags.ctrl then
+    if not M.isChromeFrontmost(env) then
+      self:cancelModal()
       return false
+    end
+
+    if event:getKeyCode() == M.ESCAPE_KEY_CODE then
+      self:cancelModal()
+      return true
+    end
+
+    local flags = event:getFlags()
+    if not M.isPlainFlags(flags) then
+      return true
     end
 
     local label = self.keyCodeLabels[event:getKeyCode()]
     if not label then
+      self:cancelModal()
       return false
     end
 
@@ -420,16 +471,14 @@ function M.create(overrides)
     self.refreshTimer = hs.timer.doEvery(M.REFRESH_INTERVAL_SECONDS, function()
       if M.isChromeFrontmost(env) then
         self:refreshCache()
+      elseif self.modalActive then
+        self:cancelModal()
       end
     end)
     self.eventtap = hs.eventtap.new({
-      hs.eventtap.event.types.flagsChanged,
       hs.eventtap.event.types.keyDown,
     }, function(event)
       local eventType = event:getType()
-      if eventType == hs.eventtap.event.types.flagsChanged then
-        return self:handleFlagsChanged(event)
-      end
       if eventType == hs.eventtap.event.types.keyDown then
         return self:handleKeyDown(event)
       end
@@ -447,6 +496,11 @@ function M.create(overrides)
       self.refreshTimer:stop()
       self.refreshTimer = nil
     end
+    if self.modalTimer and self.modalTimer.stop then
+      self.modalTimer:stop()
+      self.modalTimer = nil
+    end
+    self.modalActive = false
     self:destroyOverlay()
   end
 

@@ -1,7 +1,14 @@
 local M = dofile("hammerspoon/chrome-tab-jump-hints.lua")
 
 assert(M.CHROME_BUNDLE_ID == "com.google.Chrome")
-assert(M.LEFT_CONTROL_KEY_CODE == 59)
+assert(M.HYPER_TRIGGER_KEY_CODE == M.KEY_CODES.k)
+assert(M.KARABINER_TRIGGER_KEY_CODE == 79)
+assert(M.isHyperFlags({ ctrl = true, alt = true, shift = true, cmd = true }) == true)
+assert(M.isPlainFlags({}) == true)
+assert(M.isModalTrigger({
+  getKeyCode = function() return M.KARABINER_TRIGGER_KEY_CODE end,
+  getFlags = function() return {} end,
+}) == true)
 assert(M.KEY_CODE_LABELS[0] == "a")
 assert(M.KEY_CODE_LABELS[41] == ";")
 
@@ -20,7 +27,7 @@ local layout = M.layoutRows({ x = 10, y = 20, w = 900, h = 52 }, rows)
 assert(#layout == 3)
 assert(layout[1].label == "a" and layout[1].x < layout[2].x)
 assert(layout[2].x < layout[3].x)
-assert(layout[1].w == 34 and layout[1].h == 30)
+assert(layout[1].w == M.LABEL_WIDTH and layout[1].h == M.LABEL_HEIGHT)
 
 local fakeOverlay = { shown = false, hidden = false, replaced = 0 }
 function fakeOverlay:level(_level) return self end
@@ -69,7 +76,9 @@ fakeEnv.hs = {
     end,
   },
   timer = {
-    doAfter = function(_delay, fn) fn() end,
+    doAfter = function(delay, fn)
+      return { delay = delay, fn = fn, stop = function(self) self.stopped = true end }
+    end,
     doEvery = function(_interval, _fn)
       return { stop = function() end }
     end,
@@ -86,15 +95,16 @@ local controller = M.create(fakeEnv):start()
 assert(#controller.cache.rows == 2)
 assert(fakeOverlay.lastFrame ~= nil)
 assert(fakeOverlay.shown == false)
-assert(controller:handleFlagsChanged({
-  getKeyCode = function() return M.LEFT_CONTROL_KEY_CODE end,
-  getFlags = function() return { ctrl = true } end,
-}) == false)
+assert(controller:handleKeyDown({
+  getKeyCode = function() return M.HYPER_TRIGGER_KEY_CODE end,
+  getFlags = function() return { ctrl = true, alt = true, shift = true, cmd = true } end,
+}) == true)
 assert(fakeOverlay.shown == true)
 assert(fakeOverlay.replaced == 4)
+assert(controller.modalActive == true)
 assert(controller:handleKeyDown({
   getKeyCode = function() return M.KEY_CODES.s end,
-  getFlags = function() return { ctrl = true } end,
+  getFlags = function() return {} end,
 }) == true)
 assert(activated[1] == 2)
 assert(fakeOverlay.hidden == true)

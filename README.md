@@ -2,14 +2,14 @@
 
 A local, unpacked Chrome extension plus a resident Hammerspoon helper for transient tab-jump labels.
 
-This is adapted from [`kg8m/chrome-show-tab-numbers`](https://github.com/kg8m/chrome-show-tab-numbers) under the MIT license. The original extension numbers tabs by rewriting page titles. This fork keeps tab titles clean by default and uses a resident Hammerspoon overlay for temporary Ctrl-held hints.
+This is adapted from [`kg8m/chrome-show-tab-numbers`](https://github.com/kg8m/chrome-show-tab-numbers) under the MIT license. The original extension numbers tabs by rewriting page titles. This fork keeps tab titles clean by default and uses a resident Hammerspoon overlay for temporary Hyper+K hints.
 
 ## What it does
 
 - Keeps Chrome tab titles clean by default. The extension no longer refreshes always-on title/favicon prefixes at startup or on tab events.
 - Preserves the shared label order: `a s d f j k l ; q w e r u i o p z x c v b n m g h y t`.
-- Adds a resident Hammerspoon overlay: hold physical left Ctrl in real Google Chrome (`com.google.Chrome`) to show `[A]`, `[S]`, `[D]`, etc. near the tab strip with no title rewrite delay.
-- Tapping the visible one-key label while still holding left Ctrl jumps to that tab and hides the overlay.
+- Adds a resident Hammerspoon overlay: press Hyper+K in real Google Chrome (`com.google.Chrome`) to show subtle one-key labels near the tab strip with no title rewrite delay.
+- Tap the visible one-key label after the overlay appears to jump to that tab and hide the overlay; `Esc` or the 3-second timeout hides it without jumping.
 - Keeps the legacy local helper command available for diagnosis: `/Users/davidbeyer/.local/bin/chrome-tab-prefix-jump doctor|show|hide|jump <label>`.
 - Keeps the extension popup as the fallback for overflow/two-key labels such as `aa` and extension helper setup problems.
 - Includes restricted pages (`chrome://`, Chrome Web Store, extension pages) in the Hammerspoon overlay because it no longer depends on injecting JavaScript into the page.
@@ -53,21 +53,21 @@ Do that in Chrome, then rerun `chrome-tab-prefix-jump doctor`. If you do not wan
    ```
 
 6. Open a few normal `https://` tabs in Google Chrome.
-7. Hold physical left Ctrl. Temporary labels should appear near the tab strip almost immediately.
-8. Tap a visible one-key label, for example Ctrl+A or Ctrl+S, to jump and restore titles.
-9. Release Ctrl to hide without jumping.
+7. Press Hyper+K. Temporary labels should appear near the tab strip almost immediately.
+8. Tap a visible one-key label, for example `A` or `S`, to jump and hide the overlay.
+9. Press `Esc` or wait 3 seconds to hide without jumping.
 10. Optional popup fallback: press `⌘⇧J` or click the extension icon.
 
-If `⌘⇧J` conflicts with another extension, open `chrome://extensions/shortcuts` and remap **Tab Flash Jump Hints**. The shortcut is optional; the Ctrl-hold path is handled by Hammerspoon.
+If `⌘⇧J` conflicts with another extension, open `chrome://extensions/shortcuts` and remap **Tab Flash Jump Hints**. The shortcut is optional; the Hyper+K path is handled by Karabiner plus Hammerspoon.
 
-## Ctrl-hold pilot limits
+## Hyper+K modal limits
 
-- Only one-key labels are mapped through the resident Hammerspoon overlay. Tabs beyond the one-key alphabet get two-key labels in the popup, not Ctrl chords.
-- Physical left Ctrl is intentionally exact. Hammerspoon watches left-control key code `59`, so right Ctrl and Hyper/Caps chords should not match.
-- While Chrome is frontmost, Ctrl+label keys are tab jumps instead of normal Chrome/text-editing shortcuts. If that is annoying, change the hold key later or remove the rule.
+- Only one-key labels are mapped through the resident Hammerspoon overlay. Tabs beyond the one-key alphabet get two-key labels in the popup, not modal jumps.
+- Hyper+K is Chrome-scoped in Karabiner and bridged to F18 for Hammerspoon, so it overrides the old global Hyper+K up-arrow behavior only while real Chrome is frontmost.
+- The modal expects a plain label tap after the overlay appears. Holding Hyper while pressing labels is intentionally swallowed to avoid firing unrelated Hyper app shortcuts.
 - The helper targets the real Chrome bundle id `com.google.Chrome`, not Chrome for Testing or another Chromium app.
 
-## Change the hold key later
+## Change the trigger later
 
 Edit the Hammerspoon module in:
 
@@ -75,7 +75,7 @@ Edit the Hammerspoon module in:
 /Users/davidbeyer/chromeextension/tab-jump-hints/hammerspoon/chrome-tab-jump-hints.lua
 ```
 
-Change `LEFT_CONTROL_KEY_CODE` plus the keydown gates together. Then run:
+Change `HYPER_TRIGGER_KEY_CODE`, `KARABINER_TRIGGER_KEY_CODE`, or the Chrome-scoped Karabiner bridge together. Then run:
 
 ```bash
 npm run check
@@ -86,7 +86,7 @@ open -a Hammerspoon
 ## Rollback
 
 - Restore the prior `/Users/davidbeyer/.hammerspoon/init.lua` backup if one was created, or remove the `tabJumpHints.start()` loader.
-- If needed, restore the timestamped backup next to `/Users/davidbeyer/.config/karabiner/karabiner.json`, or keep the old rule named `Chrome transient tab prefix hints (exact left Ctrl)` removed so it does not race Hammerspoon.
+- If needed, restore the timestamped backup next to `/Users/davidbeyer/.config/karabiner/karabiner.json`, or remove the Chrome-scoped `Hyper+K → F18` bridge from `/Users/davidbeyer/.config/karabiner-custom/rules.ts` and rebuild Karabiner.
 - Remove `/Users/davidbeyer/.local/bin/chrome-tab-prefix-jump` if you do not want the helper.
 - Remove `/Users/davidbeyer/.local/state/chrome-tab-prefix-jump/` if you want to clear stale helper state/logs; the helper recreates it on the next run.
 - Reload or remove the unpacked extension from `chrome://extensions`.
@@ -112,9 +112,9 @@ npm run check
 - [ ] Confirm Hammerspoon is running and loaded `/Users/davidbeyer/.hammerspoon/init.lua`.
 - [ ] Open 8+ tabs in one Chrome window.
 - [ ] Include one restricted page such as `chrome://extensions`.
-- [ ] Confirm titles are clean before holding Ctrl.
-- [ ] Hold physical left Ctrl and confirm overlay labels appear near the tab strip almost immediately.
+- [ ] Confirm titles are clean before opening the modal.
+- [ ] Press Hyper+K and confirm subtle overlay labels appear near the tab strip almost immediately.
 - [ ] Confirm restricted pages can be jumped to by overlay label, since Hammerspoon no longer depends on page injection.
-- [ ] Release Ctrl and confirm titles are clean again.
-- [ ] Hold Ctrl and tap a visible one-key label; confirm Chrome activates that tab and restores clean titles.
+- [ ] Press `Esc` or wait 3 seconds and confirm the overlay hides without changing tabs.
+- [ ] Press Hyper+K again, then tap a visible one-key label; confirm Chrome activates that tab and keeps titles clean.
 - [ ] Press `⌘⇧J`, confirm the popup lists labels in home-row order, and activate an overflow/two-key tab from it.

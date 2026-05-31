@@ -52,10 +52,10 @@
   <body>
     <h1>Tab Flash Jump Hints</h1>
     <p>
-      This local MVP keeps Chrome tab titles clean by default. When the matching
-      Karabiner rule and helper are installed, hold physical left Ctrl while
-      Chrome is frontmost to show temporary one-key title/favicon hints, tap the
-      visible label to jump, and release Ctrl to hide.
+      This local MVP keeps Chrome tab titles clean by default. When the
+      Hammerspoon loader and Chrome-scoped Karabiner bridge are installed, press
+      Hyper+K while Chrome is frontmost to show subtle one-key overlay labels
+      near the tab strip, then tap the visible label to jump.
     </p>
 
     <h2>Label order</h2>
@@ -63,26 +63,28 @@
 
     <h2>Popup fallback</h2>
     <p>
-      The Ctrl-hold pilot jumps only one-key labels. Use the extension popup for
-      overflow/two-key labels such as <code>aa</code>, for restricted pages, or
-      whenever the local helper is not available.
+      The Hyper+K modal jumps only one-key labels. Use the extension popup for
+      overflow/two-key labels such as <code>aa</code> or whenever the
+      Hammerspoon helper is not available.
     </p>
 
     <h2>Setup gate</h2>
     <p>
-      The helper uses Chrome JavaScript from Apple Events. If
-      <code>chrome-tab-prefix-jump doctor</code> asks for setup, open Chrome and
-      enable
+      The resident Hammerspoon overlay reads Chrome tabs and switches the active
+      tab without rewriting page titles. The legacy
+      <code>chrome-tab-prefix-jump doctor</code> command is still available for
+      fallback diagnosis and may ask for Chrome’s
       <strong
         >View &gt; Developer &gt; Allow JavaScript from Apple Events</strong
-      >, then rerun the doctor command.
+      >
+      setting.
     </p>
 
     <h2>Tradeoff</h2>
     <p>
-      While Chrome is frontmost, exact physical left Ctrl plus one of the label
-      keys is reserved for tab jumps. If that conflicts with text-editing
-      habits, change the Karabiner rule to another hold key or remove the rule.
+      While Chrome is frontmost, Hyper+K is reserved for the tab-jump modal
+      instead of the global Hyper+K up-arrow mapping. If that conflicts with
+      navigation habits, remove the Chrome-scoped Karabiner bridge.
     </p>
 
     <script type="module" src="options.js"></script>
