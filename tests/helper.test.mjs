@@ -165,6 +165,20 @@ vm.runInNewContext(buildRestoreJavascript(), {
 assert.equal(untouchedPage.document.title, "[AA] Real project");
 assert.equal(untouchedPage.icons[0].getAttribute("href"), "/favicon.ico");
 
+const cachelessPrefixedPage = makeFakeDocument();
+cachelessPrefixedPage.document.title = "[A] Inbox";
+vm.runInNewContext(buildRestoreJavascript(), {
+  document: cachelessPrefixedPage.document,
+});
+assert.equal(cachelessPrefixedPage.document.title, "Inbox");
+
+const cachelessSemicolonPage = makeFakeDocument();
+cachelessSemicolonPage.document.title = "[;] Docs";
+vm.runInNewContext(buildRestoreJavascript(), {
+  document: cachelessSemicolonPage.document,
+});
+assert.equal(cachelessSemicolonPage.document.title, "Docs");
+
 const staleTitlePage = makeFakeDocument();
 staleTitlePage.document.title = "Inbox (1)";
 vm.runInNewContext(

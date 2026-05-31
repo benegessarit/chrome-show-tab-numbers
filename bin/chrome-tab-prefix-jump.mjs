@@ -294,11 +294,14 @@ export function buildShowJavascript(row) {
 }
 
 export function buildRestoreJavascript() {
+  const oneKeyLabels = LABEL_ALPHABET.map((label) => label.toLowerCase());
+
   return `(() => {
     const cacheKey = ${JSON.stringify(PAGE_CACHE_KEY)};
     const legacyCacheKey = ${JSON.stringify(LEGACY_PAGE_CACHE_KEY)};
     const createdFaviconAttribute = ${JSON.stringify(CREATED_FAVICON_ATTRIBUTE)};
     const generatedFaviconAttribute = ${JSON.stringify(GENERATED_FAVICON_ATTRIBUTE)};
+    const oneKeyLabels = ${JSON.stringify(oneKeyLabels)};
     const tabPrefixPattern = /^(?:[◆◇]\\s*[A-Z;]{1,4}\\s*[◆◇]|\\[[A-Z;]{1,4}\\])\\s*/i;
     const numberedPattern = /^[-+]?\\d+\\. ?/;
     const notificationCountPattern = /^(\\(\\d+\\)) [-+]?\\d+\\. (?:\\(\\d+\\) )?/;
@@ -321,6 +324,23 @@ export function buildRestoreJavascript() {
       return (
         normalizedTitle === expectedPrefix ||
         normalizedTitle.startsWith(expectedPrefix + " ")
+      );
+    }
+
+    function titleHasOneKeyBracketPrefix(title) {
+      const text = String(title || "");
+      if (!text.startsWith("[")) {
+        return false;
+      }
+      const closingBracket = text.indexOf("]");
+      if (closingBracket < 2 || closingBracket > 5) {
+        return false;
+      }
+      const label = text.slice(1, closingBracket).toLowerCase();
+      const nextChar = text.charAt(closingBracket + 1);
+      return (
+        oneKeyLabels.includes(label) &&
+        (nextChar === "" || nextChar === " ")
       );
     }
 
@@ -348,6 +368,11 @@ export function buildRestoreJavascript() {
         } else if (titleHasMatchingBracketPrefix(currentTitle, label)) {
           document.title = stripKnownPrefix(currentTitle);
         }
+        return;
+      }
+
+      if (titleHasOneKeyBracketPrefix(currentTitle)) {
+        document.title = stripKnownPrefix(currentTitle);
       }
     }
 
