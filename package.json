@@ -14,7 +14,7 @@
     "lint": "eslint .",
     "format": "eslint --fix . && prettier --write .",
     "format-check": "prettier --check .",
-    "test": "node tests/labeling.test.mjs && node tests/background-static.test.mjs && node tests/helper.test.mjs",
+    "test": "node tests/labeling.test.mjs && node tests/background-static.test.mjs && node tests/helper.test.mjs && node tests/hammerspoon-static.test.mjs && lua tests/hammerspoon-behavior.lua",
     "validate-manifest": "node scripts/validate-manifest.mjs",
     "check": "npm run lint && npm run format-check && npm test && npm run validate-manifest"
   },
