@@ -9,8 +9,23 @@ M.CACHE_STALE_SECONDS = 3.0
 M.MODAL_TIMEOUT_SECONDS = 3.0
 M.MAX_ONE_KEY_TABS = 27
 M.OVERLAY_HEIGHT = 42
-M.LABEL_WIDTH = 26
-M.LABEL_HEIGHT = 22
+M.TAB_STRIP_LEFT_INSET = 86
+M.TAB_STRIP_RIGHT_INSET = 22
+M.MIN_TAB_WIDTH = 42
+M.MAX_TAB_WIDTH = 220
+M.MIN_USABLE_TAB_STRIP_WIDTH = 180
+M.LABEL_LEFT_OFFSET = 8
+M.LABEL_TOP = 7
+M.LABEL_WIDTH = 18
+M.LABEL_HEIGHT = 16
+M.LABEL_TEXT_SIZE = 11
+M.LABEL_RADIUS = 3
+-- Vimium's default link-hint marker is a yellow gradient from #fff785 to #ffc542,
+-- with border #c38a22 and text #302505. hs.canvas uses a solid fill here, so this
+-- uses the gradient midpoint while keeping Vimium's border/text colors.
+M.VIMIUM_HINT_FILL = { red = 1.00, green = 0.87, blue = 0.39, alpha = 0.92 }
+M.VIMIUM_HINT_STROKE = { red = 0.76, green = 0.54, blue = 0.13, alpha = 0.88 }
+M.VIMIUM_HINT_TEXT = { red = 0.19, green = 0.15, blue = 0.02, alpha = 0.98 }
 M.LABELS = {
   "a", "s", "d", "f", "j", "k", "l", ";",
   "q", "w", "e", "r", "u", "i", "o", "p",
@@ -146,15 +161,16 @@ function M.layoutRows(windowFrame, rows)
     return visibleRows
   end
 
-  local leftInset = 86
-  local rightInset = 22
+  local leftInset = M.TAB_STRIP_LEFT_INSET
+  local rightInset = M.TAB_STRIP_RIGHT_INSET
   local labelWidth = M.LABEL_WIDTH
-  local usableWidth = math.max(180, windowFrame.w - leftInset - rightInset)
-  local tabWidth = math.min(220, math.max(42, usableWidth / count))
-  local y = 7
+  local usableWidth = math.max(M.MIN_USABLE_TAB_STRIP_WIDTH, windowFrame.w - leftInset - rightInset)
+  local tabWidth = math.min(M.MAX_TAB_WIDTH, math.max(M.MIN_TAB_WIDTH, usableWidth / count))
+  local y = M.LABEL_TOP
 
   for index, row in ipairs(rows) do
-    local x = leftInset + ((index - 1) * tabWidth) + math.max(3, (tabWidth - labelWidth) / 2)
+    local leadingOffset = math.min(M.LABEL_LEFT_OFFSET, math.max(3, tabWidth - labelWidth - 3))
+    local x = leftInset + ((index - 1) * tabWidth) + leadingOffset
     visibleRows[#visibleRows + 1] = {
       active = row.active,
       label = row.label,
@@ -242,12 +258,9 @@ end
 local function makeCanvasElements(rows)
   local elements = {}
   for _, row in ipairs(rows) do
-    local background = row.active and { red = 0.80, green = 0.65, blue = 0.97, alpha = 0.82 }
-      or { red = 0.06, green = 0.07, blue = 0.10, alpha = 0.64 }
-    local foreground = row.active and { red = 0.05, green = 0.04, blue = 0.08, alpha = 0.96 }
-      or { red = 0.93, green = 0.91, blue = 0.98, alpha = 0.94 }
-    local stroke = row.active and { red = 0.91, green = 0.82, blue = 1.00, alpha = 0.68 }
-      or { red = 0.93, green = 0.91, blue = 0.98, alpha = 0.24 }
+    local background = M.VIMIUM_HINT_FILL
+    local foreground = M.VIMIUM_HINT_TEXT
+    local stroke = M.VIMIUM_HINT_STROKE
 
     elements[#elements + 1] = {
       type = "rectangle",
@@ -255,11 +268,11 @@ local function makeCanvasElements(rows)
       frame = { x = row.x, y = row.y, w = row.w, h = row.h },
       fillColor = background,
       strokeColor = stroke,
-      strokeWidth = row.active and 1.2 or 0.8,
-      roundedRectRadii = { xRadius = 7, yRadius = 7 },
+      strokeWidth = row.active and 1.1 or 0.8,
+      roundedRectRadii = { xRadius = M.LABEL_RADIUS, yRadius = M.LABEL_RADIUS },
       withShadow = true,
       shadow = {
-        blurRadius = row.active and 10 or 7,
+        blurRadius = row.active and 5 or 4,
         color = { red = 0.00, green = 0.00, blue = 0.00, alpha = row.active and 0.24 or 0.18 },
         offset = { h = 1, w = 0 },
       },
@@ -267,11 +280,11 @@ local function makeCanvasElements(rows)
     elements[#elements + 1] = {
       type = "text",
       text = string.upper(row.label),
-      frame = { x = row.x, y = row.y + 2, w = row.w, h = row.h },
+      frame = { x = row.x, y = row.y + 1, w = row.w, h = row.h },
       textAlignment = "center",
       textColor = foreground,
-      textFont = "Menlo-Bold",
-      textSize = 14,
+      textFont = "Helvetica-Bold",
+      textSize = M.LABEL_TEXT_SIZE,
     }
   end
   return elements

@@ -28,6 +28,14 @@ assert(#layout == 3)
 assert(layout[1].label == "a" and layout[1].x < layout[2].x)
 assert(layout[2].x < layout[3].x)
 assert(layout[1].w == M.LABEL_WIDTH and layout[1].h == M.LABEL_HEIGHT)
+assert(M.LABEL_WIDTH == 18 and M.LABEL_HEIGHT == 16 and M.LABEL_TEXT_SIZE == 11)
+assert(layout[1].x == M.TAB_STRIP_LEFT_INSET + M.LABEL_LEFT_OFFSET)
+assert(layout[1].y == M.LABEL_TOP)
+local usableWidth = math.max(M.MIN_USABLE_TAB_STRIP_WIDTH, 900 - M.TAB_STRIP_LEFT_INSET - M.TAB_STRIP_RIGHT_INSET)
+local tabWidth = math.min(M.MAX_TAB_WIDTH, math.max(M.MIN_TAB_WIDTH, usableWidth / #rows))
+local centeredFirstX = M.TAB_STRIP_LEFT_INSET + ((tabWidth - M.LABEL_WIDTH) / 2)
+assert(layout[1].x < centeredFirstX - 40)
+assert(layout[2].x == M.TAB_STRIP_LEFT_INSET + tabWidth + M.LABEL_LEFT_OFFSET)
 
 local fakeOverlay = { shown = false, hidden = false, replaced = 0 }
 function fakeOverlay:level(_level) return self end

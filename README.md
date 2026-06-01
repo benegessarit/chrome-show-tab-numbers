@@ -53,7 +53,7 @@ Do that in Chrome, then rerun `chrome-tab-prefix-jump doctor`. If you do not wan
    ```
 
 6. Open a few normal `https://` tabs in Google Chrome.
-7. Press Hyper+K. Temporary labels should appear near the tab strip almost immediately.
+7. Press Hyper+K. Temporary Vimium-yellow labels should appear near the left/start of each tab in the tab strip almost immediately.
 8. Tap a visible one-key label, for example `A` or `S`, to jump and hide the overlay.
 9. Press `Esc` or wait 3 seconds to hide without jumping.
 10. Optional popup fallback: press `⌘⇧J` or click the extension icon.
@@ -103,7 +103,8 @@ npm run check
 
 - ESLint across the extension and helper source;
 - Prettier format check;
-- label-generation, hidden-by-default background, and helper state tests; and
+- label-generation, hidden-by-default background, and helper state tests;
+- resident Hammerspoon modal layout/style static and behavior tests; and
 - a small manifest validator for local MV3 loading.
 
 ## Manual smoke checklist
@@ -113,7 +114,7 @@ npm run check
 - [ ] Open 8+ tabs in one Chrome window.
 - [ ] Include one restricted page such as `chrome://extensions`.
 - [ ] Confirm titles are clean before opening the modal.
-- [ ] Press Hyper+K and confirm subtle overlay labels appear near the tab strip almost immediately.
+- [ ] Press Hyper+K and confirm small Vimium-yellow overlay labels appear near the left/start of each tab almost immediately.
 - [ ] Confirm restricted pages can be jumped to by overlay label, since Hammerspoon no longer depends on page injection.
 - [ ] Press `Esc` or wait 3 seconds and confirm the overlay hides without changing tabs.
 - [ ] Press Hyper+K again, then tap a visible one-key label; confirm Chrome activates that tab and keeps titles clean.
