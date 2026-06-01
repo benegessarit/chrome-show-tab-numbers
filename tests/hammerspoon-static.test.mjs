@@ -12,11 +12,13 @@ assert.equal(existsSync(initPath), true);
 assert.match(source, /M\.CHROME_BUNDLE_ID\s*=\s*"com\.google\.Chrome"/);
 assert.match(source, /M\.HYPER_TRIGGER_KEY_CODE\s*=\s*40/);
 assert.match(source, /M\.KARABINER_TRIGGER_KEY_CODE\s*=\s*79/);
+assert.match(source, /M\.REFRESH_INTERVAL_SECONDS\s*=\s*0\.5/);
+assert.match(source, /M\.CACHE_STALE_SECONDS\s*=\s*1\.0/);
 assert.match(source, /M\.MODAL_TIMEOUT_SECONDS\s*=\s*3\.0/);
-assert.match(source, /M\.LABEL_WIDTH\s*=\s*18/);
-assert.match(source, /M\.LABEL_HEIGHT\s*=\s*16/);
-assert.match(source, /M\.LABEL_TEXT_SIZE\s*=\s*11/);
-assert.match(source, /M\.LABEL_LEFT_OFFSET\s*=\s*8/);
+assert.match(source, /M\.LABEL_WIDTH\s*=\s*16/);
+assert.match(source, /M\.LABEL_HEIGHT\s*=\s*14/);
+assert.match(source, /M\.LABEL_TEXT_SIZE\s*=\s*10/);
+assert.doesNotMatch(source, /LABEL_LEFT_OFFSET/);
 assert.match(
   source,
   /M\.VIMIUM_HINT_FILL\s*=\s*\{ red = 1\.00, green = 0\.87, blue = 0\.39, alpha = 0\.92 \}/,
@@ -32,7 +34,14 @@ assert.match(
 assert.match(source, /#fff785 to #ffc542/);
 assert.match(source, /#c38a22/);
 assert.match(source, /#302505/);
-assert.doesNotMatch(source, /\(tabWidth - labelWidth\) \/ 2/);
+assert.match(source, /\(tabWidth - labelWidth\) \/ 2/);
+assert.match(source, /math\.floor\(x \+ 0\.5\)/);
+assert.match(source, /hs\.axuielement\.applicationElement/);
+assert.match(source, /AXTabGroup/);
+assert.match(source, /AXRadioButton/);
+assert.match(source, /AXFrame/);
+assert.match(source, /tabFrame\.x - windowFrame\.x/);
+assert.match(source, /#self\.cache\.rows == 0[\s\S]*self:refreshCache\(\)/);
 assert.doesNotMatch(source, /Menlo-Bold/);
 assert.match(source, /textFont = "Helvetica-Bold"/);
 assert.match(source, /textSize = M\.LABEL_TEXT_SIZE/);

@@ -4,8 +4,8 @@ M.CHROME_BUNDLE_ID = "com.google.Chrome"
 M.HYPER_TRIGGER_KEY_CODE = 40 -- k
 M.KARABINER_TRIGGER_KEY_CODE = 79 -- f18 bridge for Chrome-scoped Hyper+K
 M.ESCAPE_KEY_CODE = 53
-M.REFRESH_INTERVAL_SECONDS = 1.5
-M.CACHE_STALE_SECONDS = 3.0
+M.REFRESH_INTERVAL_SECONDS = 0.5
+M.CACHE_STALE_SECONDS = 1.0
 M.MODAL_TIMEOUT_SECONDS = 3.0
 M.MAX_ONE_KEY_TABS = 27
 M.OVERLAY_HEIGHT = 42
@@ -14,11 +14,10 @@ M.TAB_STRIP_RIGHT_INSET = 22
 M.MIN_TAB_WIDTH = 42
 M.MAX_TAB_WIDTH = 220
 M.MIN_USABLE_TAB_STRIP_WIDTH = 180
-M.LABEL_LEFT_OFFSET = 8
 M.LABEL_TOP = 7
-M.LABEL_WIDTH = 18
-M.LABEL_HEIGHT = 16
-M.LABEL_TEXT_SIZE = 11
+M.LABEL_WIDTH = 16
+M.LABEL_HEIGHT = 14
+M.LABEL_TEXT_SIZE = 10
 M.LABEL_RADIUS = 3
 -- Vimium's default link-hint marker is a yellow gradient from #fff785 to #ffc542,
 -- with border #c38a22 and text #302505. hs.canvas uses a solid fill here, so this
@@ -80,6 +79,29 @@ local function defaultNow(env)
     return env.hs.timer.secondsSinceEpoch()
   end
   return os.time()
+end
+
+local function safeAttribute(element, attribute)
+  if not element or not element.attributeValue then
+    return nil
+  end
+  local ok, value = pcall(function()
+    return element:attributeValue(attribute)
+  end)
+  if ok then
+    return value
+  end
+  return nil
+end
+
+local function frameCloseEnough(left, right)
+  if not left or not right then
+    return false
+  end
+  return math.abs((left.x or 0) - (right.x or 0)) <= 1
+    and math.abs((left.y or 0) - (right.y or 0)) <= 1
+    and math.abs((left.w or 0) - (right.w or 0)) <= 1
+    and math.abs((left.h or 0) - (right.h or 0)) <= 1
 end
 
 local function frontmostBundleID(env)
@@ -149,6 +171,7 @@ function M.buildRows(tabs)
       tabIndex = tabIndex,
       title = tab.title or tab.url or "Untitled tab",
       url = tab.url or "",
+      frame = tab.frame,
     }
   end
   return rows
@@ -166,18 +189,22 @@ function M.layoutRows(windowFrame, rows)
   local labelWidth = M.LABEL_WIDTH
   local usableWidth = math.max(M.MIN_USABLE_TAB_STRIP_WIDTH, windowFrame.w - leftInset - rightInset)
   local tabWidth = math.min(M.MAX_TAB_WIDTH, math.max(M.MIN_TAB_WIDTH, usableWidth / count))
-  local y = M.LABEL_TOP
 
   for index, row in ipairs(rows) do
-    local leadingOffset = math.min(M.LABEL_LEFT_OFFSET, math.max(3, tabWidth - labelWidth - 3))
-    local x = leftInset + ((index - 1) * tabWidth) + leadingOffset
+    local x = leftInset + ((index - 1) * tabWidth) + ((tabWidth - labelWidth) / 2)
+    local y = M.LABEL_TOP
+    local tabFrame = row.frame
+    if tabFrame and tabFrame.x and tabFrame.y and tabFrame.w and tabFrame.h then
+      x = (tabFrame.x - windowFrame.x) + ((tabFrame.w - labelWidth) / 2)
+      y = (tabFrame.y - windowFrame.y) + ((tabFrame.h - M.LABEL_HEIGHT) / 2)
+    end
     visibleRows[#visibleRows + 1] = {
       active = row.active,
       label = row.label,
       tabIndex = row.tabIndex,
       title = row.title,
-      x = math.floor(x),
-      y = y,
+      x = math.floor(x + 0.5),
+      y = math.floor(y + 0.5),
       w = labelWidth,
       h = M.LABEL_HEIGHT,
     }
@@ -186,7 +213,94 @@ function M.layoutRows(windowFrame, rows)
   return visibleRows
 end
 
+local function collectAXTabButtons(element, tabs, inTabGroup, depth)
+  if not element or depth > 14 then
+    return
+  end
+
+  local role = safeAttribute(element, "AXRole")
+  local insideTabGroup = inTabGroup or role == "AXTabGroup"
+  if insideTabGroup and role == "AXRadioButton" then
+    local frame = safeAttribute(element, "AXFrame")
+    if frame and frame.w and frame.h and frame.w > 20 and frame.h > 10 then
+      tabs[#tabs + 1] = {
+        active = safeAttribute(element, "AXValue") == true,
+        frame = frame,
+        title = safeAttribute(element, "AXDescription") or safeAttribute(element, "AXTitle") or "",
+      }
+    end
+    return
+  end
+
+  local children = safeAttribute(element, "AXChildren")
+  if not children then
+    return
+  end
+  for _, child in ipairs(children) do
+    collectAXTabButtons(child, tabs, insideTabGroup, depth + 1)
+  end
+end
+
+local function chromeAXWindow(env)
+  local hs = env.hs
+  if not hs.axuielement then
+    return nil
+  end
+  local app = chromeApp(env)
+  if not app then
+    return nil
+  end
+  local appElement = hs.axuielement.applicationElement(app)
+  if not appElement then
+    return nil
+  end
+
+  local targetWindow = chromeWindow(env)
+  local targetFrame = targetWindow and targetWindow:frame()
+  local targetTitle = targetWindow and targetWindow:title()
+  local windows = safeAttribute(appElement, "AXWindows") or {}
+  for _, axWindow in ipairs(windows) do
+    local axFrame = safeAttribute(axWindow, "AXFrame")
+    local axTitle = safeAttribute(axWindow, "AXTitle")
+    if frameCloseEnough(axFrame, targetFrame) or (targetTitle and axTitle == targetTitle) then
+      return axWindow
+    end
+  end
+  return safeAttribute(appElement, "AXMainWindow") or windows[1]
+end
+
+local function queryChromeTabsFromAX(env)
+  local axWindow = chromeAXWindow(env)
+  if not axWindow then
+    return nil
+  end
+
+  local axTabs = {}
+  collectAXTabButtons(axWindow, axTabs, false, 0)
+  if #axTabs == 0 then
+    return nil
+  end
+
+  local tabs = {}
+  for index, tab in ipairs(axTabs) do
+    tabs[#tabs + 1] = {
+      active = tab.active,
+      frame = tab.frame,
+      index = index - 1,
+      tabIndex = index,
+      title = tab.title ~= "" and tab.title or ("Tab " .. index),
+      url = "",
+    }
+  end
+  return tabs
+end
+
 local function queryChromeTabs(env)
+  local axTabs = queryChromeTabsFromAX(env)
+  if axTabs then
+    return axTabs, nil
+  end
+
   local hs = env.hs
   local ok, object, descriptor = hs.osascript.javascript(([[
 (() => {
@@ -417,9 +531,16 @@ function M.create(overrides)
       return false
     end
     self.modalActive = true
-    self:showOverlay()
     self:armModalTimeout()
-    if env.now() - (self.cache.updatedAt or 0) > M.CACHE_STALE_SECONDS then
+
+    local cacheAge = env.now() - (self.cache.updatedAt or 0)
+    if #self.cache.rows == 0 then
+      self:refreshCache()
+    else
+      self:showOverlay()
+    end
+
+    if #self.cache.rows > 0 and cacheAge > M.CACHE_STALE_SECONDS then
       self:refreshSoon()
     end
     return true

@@ -8,7 +8,7 @@ This is adapted from [`kg8m/chrome-show-tab-numbers`](https://github.com/kg8m/ch
 
 - Keeps Chrome tab titles clean by default. The extension no longer refreshes always-on title/favicon prefixes at startup or on tab events.
 - Preserves the shared label order: `a s d f j k l ; q w e r u i o p z x c v b n m g h y t`.
-- Adds a resident Hammerspoon overlay: press Hyper+K in real Google Chrome (`com.google.Chrome`) to show subtle one-key labels near the tab strip with no title rewrite delay.
+- Adds a resident Hammerspoon overlay: press Hyper+K in real Google Chrome (`com.google.Chrome`) to show small one-key labels centered over each visible tab with no title rewrite delay.
 - Tap the visible one-key label after the overlay appears to jump to that tab and hide the overlay; `Esc` or the 3-second timeout hides it without jumping.
 - Keeps the legacy local helper command available for diagnosis: `/Users/davidbeyer/.local/bin/chrome-tab-prefix-jump doctor|show|hide|jump <label>`.
 - Keeps the extension popup as the fallback for overflow/two-key labels such as `aa` and extension helper setup problems.
@@ -53,7 +53,7 @@ Do that in Chrome, then rerun `chrome-tab-prefix-jump doctor`. If you do not wan
    ```
 
 6. Open a few normal `https://` tabs in Google Chrome.
-7. Press Hyper+K. Temporary Vimium-yellow labels should appear near the left/start of each tab in the tab strip almost immediately.
+7. Press Hyper+K. Temporary Vimium-yellow labels should appear centered in each tab in the tab strip almost immediately.
 8. Tap a visible one-key label, for example `A` or `S`, to jump and hide the overlay.
 9. Press `Esc` or wait 3 seconds to hide without jumping.
 10. Optional popup fallback: press `⌘⇧J` or click the extension icon.
@@ -114,7 +114,7 @@ npm run check
 - [ ] Open 8+ tabs in one Chrome window.
 - [ ] Include one restricted page such as `chrome://extensions`.
 - [ ] Confirm titles are clean before opening the modal.
-- [ ] Press Hyper+K and confirm small Vimium-yellow overlay labels appear near the left/start of each tab almost immediately.
+- [ ] Press Hyper+K and confirm small Vimium-yellow overlay labels appear centered in each tab almost immediately.
 - [ ] Confirm restricted pages can be jumped to by overlay label, since Hammerspoon no longer depends on page injection.
 - [ ] Press `Esc` or wait 3 seconds and confirm the overlay hides without changing tabs.
 - [ ] Press Hyper+K again, then tap a visible one-key label; confirm Chrome activates that tab and keeps titles clean.
