@@ -7,7 +7,7 @@ M.ESCAPE_KEY_CODE = 53
 M.REFRESH_INTERVAL_SECONDS = 0.5
 M.CACHE_STALE_SECONDS = 1.0
 M.MODAL_TIMEOUT_SECONDS = 3.0
-M.MAX_ONE_KEY_TABS = 27
+M.MAX_ONE_KEY_TABS = 26
 M.OVERLAY_HEIGHT = 42
 M.TAB_STRIP_LEFT_INSET = 86
 M.TAB_STRIP_RIGHT_INSET = 22
@@ -26,9 +26,8 @@ M.VIMIUM_HINT_FILL = { red = 1.00, green = 0.87, blue = 0.39, alpha = 0.92 }
 M.VIMIUM_HINT_STROKE = { red = 0.76, green = 0.54, blue = 0.13, alpha = 0.88 }
 M.VIMIUM_HINT_TEXT = { red = 0.19, green = 0.15, blue = 0.02, alpha = 0.98 }
 M.LABELS = {
-  "a", "s", "d", "f", "j", "k", "l", ";",
-  "q", "w", "e", "r", "u", "i", "o", "p",
-  "z", "x", "c", "v", "b", "n", "m", "g", "h", "y", "t",
+  "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m",
+  "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
 }
 M.KEY_CODES = {
   a = 0,
@@ -568,6 +567,10 @@ function M.create(overrides)
 
   function controller:handleKeyDown(event)
     if M.isModalTrigger(event) then
+      if self.modalActive then
+        self:cancelModal()
+        return true
+      end
       return self:activateModal()
     end
 

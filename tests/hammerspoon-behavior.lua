@@ -11,6 +11,8 @@ assert(M.isModalTrigger({
 }) == true)
 assert(M.KEY_CODE_LABELS[0] == "a")
 assert(M.KEY_CODE_LABELS[41] == ";")
+assert(M.MAX_ONE_KEY_TABS == 26)
+assert(M.LABELS[1] == "a" and M.LABELS[2] == "b" and M.LABELS[26] == "z")
 
 local rows = M.buildRows({
   { index = 0, title = "First", url = "https://first.example", active = true },
@@ -20,8 +22,8 @@ local rows = M.buildRows({
 
 assert(#rows == 3)
 assert(rows[1].label == "a" and rows[1].tabIndex == 1 and rows[1].active == true)
-assert(rows[2].label == "s" and rows[2].tabIndex == 2)
-assert(rows[3].label == "d" and rows[3].tabIndex == 4)
+assert(rows[2].label == "b" and rows[2].tabIndex == 2)
+assert(rows[3].label == "c" and rows[3].tabIndex == 4)
 
 local layout = M.layoutRows({ x = 10, y = 20, w = 900, h = 52 }, rows)
 assert(#layout == 3)
@@ -130,9 +132,17 @@ assert(controller:handleKeyDown({
 assert(fakeOverlay.shown == true)
 assert(fakeOverlay.replaced == 4)
 assert(controller.modalActive == true)
+fakeOverlay.hidden = false
+assert(controller:handleKeyDown({
+  getKeyCode = function() return M.HYPER_TRIGGER_KEY_CODE end,
+  getFlags = function() return { ctrl = true, alt = true, shift = true, cmd = true } end,
+}) == true)
+assert(controller.modalActive == false)
+assert(fakeOverlay.hidden == true)
 controller.cache.rows = {}
 controller.cache.updatedAt = 0
 fakeOverlay.shown = false
+fakeOverlay.hidden = false
 assert(controller:handleKeyDown({
   getKeyCode = function() return M.HYPER_TRIGGER_KEY_CODE end,
   getFlags = function() return { ctrl = true, alt = true, shift = true, cmd = true } end,
@@ -141,7 +151,7 @@ assert(queryCount >= 2)
 assert(fakeOverlay.shown == true)
 assert(#controller.cache.rows == 2)
 assert(controller:handleKeyDown({
-  getKeyCode = function() return M.KEY_CODES.s end,
+  getKeyCode = function() return M.KEY_CODES.b end,
   getFlags = function() return {} end,
 }) == true)
 assert(activated[1] == 2)

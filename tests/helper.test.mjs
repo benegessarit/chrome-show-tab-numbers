@@ -42,20 +42,21 @@ assert.deepEqual(
 );
 
 assert.equal(normalizeOneKeyLabel("A"), "a");
-assert.equal(normalizeOneKeyLabel(";"), ";");
+assert.equal(normalizeOneKeyLabel("Z"), "z");
+assert.equal(normalizeOneKeyLabel(";"), null);
 assert.equal(normalizeOneKeyLabel("AA"), null);
 assert.equal(normalizeOneKeyLabel("/"), null);
 
 assert.equal(titleHasVisiblePrefix("[A] Inbox", "a"), true);
 assert.equal(titleHasVisiblePrefix("[a] Inbox", "A"), true);
-assert.equal(titleHasVisiblePrefix("[;] Docs", ";"), true);
+assert.equal(titleHasVisiblePrefix("[;] Docs", ";"), false);
 assert.equal(titleHasVisiblePrefix("[AA] Inbox", "a"), false);
 assert.equal(titleHasVisiblePrefix("◆ A ◆ Inbox", "a"), false);
 assert.equal(titleHasVisiblePrefix("A Inbox", "a"), false);
 
 assert.equal(renderHintTitle("Inbox", "a"), "[A] Inbox");
 assert.equal(renderHintTitle("[S] Inbox", "a"), "[A] Inbox");
-assert.equal(renderHintTitle("[;] Docs", ";"), "[;] Docs");
+assert.equal(renderHintTitle("Docs", "z"), "[Z] Docs");
 assert.equal(restoreTitle("[A] Inbox", {}), "Inbox");
 assert.equal(restoreTitle("[;] Docs", {}), "Docs");
 assert.equal(restoreTitle("[AA] Inbox", {}), "Inbox");
@@ -177,7 +178,7 @@ cachelessSemicolonPage.document.title = "[;] Docs";
 vm.runInNewContext(buildRestoreJavascript(), {
   document: cachelessSemicolonPage.document,
 });
-assert.equal(cachelessSemicolonPage.document.title, "Docs");
+assert.equal(cachelessSemicolonPage.document.title, "[;] Docs");
 
 const staleTitlePage = makeFakeDocument();
 staleTitlePage.document.title = "Inbox (1)";
@@ -257,12 +258,13 @@ assert.deepEqual(
   mixedRows.map((row) => [row.label, row.tabIndex, row.title, row.rawTitle]),
   [
     ["a", 2, "First normal", "First normal"],
-    ["s", 3, "Semi", "[;] Semi"],
-    ["d", 5, "Third normal", "Third normal"],
+    ["b", 3, "Semi", "[;] Semi"],
+    ["c", 5, "Third normal", "Third normal"],
   ],
 );
 assert.equal(findJumpTarget(mixedRows, "a")?.tabIndex, 2);
-assert.equal(findJumpTarget(mixedRows, ";")?.tabIndex, 3);
+assert.equal(findJumpTarget(mixedRows, "b")?.tabIndex, 3);
+assert.equal(findJumpTarget(mixedRows, ";"), null);
 assert.equal(findJumpTarget(mixedRows, "aa"), null);
 assert.doesNotThrow(() =>
   assertJavascriptExecutionSucceeded(
@@ -390,7 +392,7 @@ await withStateDir(async (stateDir) => {
   };
 
   await showHints(deps);
-  const result = await jumpToLabel("S", deps);
+  const result = await jumpToLabel("B", deps);
 
   assert.equal(result.status, "jumped");
   assert.deepEqual(activated, [2]);

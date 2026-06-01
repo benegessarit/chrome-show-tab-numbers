@@ -15,6 +15,7 @@ assert.match(source, /M\.KARABINER_TRIGGER_KEY_CODE\s*=\s*79/);
 assert.match(source, /M\.REFRESH_INTERVAL_SECONDS\s*=\s*0\.5/);
 assert.match(source, /M\.CACHE_STALE_SECONDS\s*=\s*1\.0/);
 assert.match(source, /M\.MODAL_TIMEOUT_SECONDS\s*=\s*3\.0/);
+assert.match(source, /M\.MAX_ONE_KEY_TABS\s*=\s*26/);
 assert.match(source, /M\.LABEL_WIDTH\s*=\s*16/);
 assert.match(source, /M\.LABEL_HEIGHT\s*=\s*14/);
 assert.match(source, /M\.LABEL_TEXT_SIZE\s*=\s*10/);
@@ -42,6 +43,10 @@ assert.match(source, /AXRadioButton/);
 assert.match(source, /AXFrame/);
 assert.match(source, /tabFrame\.x - windowFrame\.x/);
 assert.match(source, /#self\.cache\.rows == 0[\s\S]*self:refreshCache\(\)/);
+assert.match(
+  source,
+  /if self\.modalActive then[\s\S]*self:cancelModal\(\)[\s\S]*return true/,
+);
 assert.doesNotMatch(source, /Menlo-Bold/);
 assert.match(source, /textFont = "Helvetica-Bold"/);
 assert.match(source, /textSize = M\.LABEL_TEXT_SIZE/);
@@ -54,7 +59,8 @@ assert.match(source, /:show\(0\)/);
 assert.match(source, /hs\.osascript\.javascript/);
 assert.match(source, /activeTabIndex\.set/);
 assert.match(source, /M\.LABELS\s*=\s*\{/);
-assert.match(source, /";"/);
+assert.match(source, /"a", "b", "c", "d"/);
+assert.match(source, /"w", "x", "y", "z"/);
 assert.match(source, /\[";"\]\s*=\s*41/);
 assert.match(source, /function M\.start/);
 assert.match(initSource, /hs\.ipc\.cliInstall\(\)/);

@@ -8,11 +8,11 @@ import {
 } from "../lib/labels.js";
 
 assert.equal(labelForIndex(0), "a");
-assert.equal(labelForIndex(1), "s");
-assert.equal(labelForIndex(7), ";");
-assert.equal(labelForIndex(LABEL_ALPHABET.length - 1), "t");
+assert.equal(labelForIndex(1), "b");
+assert.equal(labelForIndex(7), "h");
+assert.equal(labelForIndex(LABEL_ALPHABET.length - 1), "z");
 assert.equal(labelForIndex(LABEL_ALPHABET.length), "aa");
-assert.equal(labelForIndex(LABEL_ALPHABET.length + 1), "as");
+assert.equal(labelForIndex(LABEL_ALPHABET.length + 1), "ab");
 assert.throws(() => labelForIndex(-1), /non-negative/);
 
 assert.equal(isInjectableUrl("https://example.com"), true);
@@ -74,7 +74,7 @@ assert.deepEqual(
   rows.map((row) => [row.label, row.tabId, row.title, row.injectable]),
   [
     ["a", 8, "First", true],
-    ["s", 10, "Third", true],
+    ["b", 10, "Third", true],
   ],
 );
 
@@ -123,9 +123,9 @@ const popupRows = buildHintRows(
 assert.deepEqual(
   popupRows.map((row) => [row.label, row.tabId, row.title, row.injectable]),
   [
-    ["d", 1, "Chrome settings", false],
+    ["c", 1, "Chrome settings", false],
     ["a", 2, "First normal", true],
-    ["s", 3, "Second normal", true],
+    ["b", 3, "Second normal", true],
   ],
 );
 
